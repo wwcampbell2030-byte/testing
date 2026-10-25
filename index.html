@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>3D Image Ring</title>
+  <style>
+    html, body, #dragger, #ring, .img, .vignette {
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      background: #303033;
+    }
+
+    div {
+      position: absolute;
+    }
+
+    .container {
+      perspective: 2000px;
+      width: 300px;   /* overwritten by the script to match your image shape */
+      height: 300px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .vignette {
+      width: 1400px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(to left, #303033 12%, rgba(0,0,0,0) 40%, rgba(0,0,0,0) 60%, #303033 88%);
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="container">
+    <div id="ring"></div>
+  </div>
+  <div class="vignette"></div>
+  <div id="dragger"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Draggable.min.js"></script>
+  <script>
+    gsap.registerPlugin(Draggable);
+
+    // YOUR IMAGES (keep them in the same folder as this file)
+    const images = [
+      'Cam1.jpg',
+      'Ducks1.jpg',
+      'Ducks2.jpg',
+      'Ducks3.jpg',
+      'Ducks4.jpg',
+      'Ducks5.jpg',
+      'UpStairs.jpg'
+    ];
+
+    // ---- Size settings ----
+    const IMG_RATIO = 1280 / 873;   // your photos' width / height
+    const PANEL_H   = 300;          // height of each panel in px (change to make the ring bigger or smaller)
+    const PARALLAX  = 120;          // how far each photo slides sideways as it rotates (px)
+    const GAP       = 1.02;         // 1 = panels touch, higher = small gaps between them
+
+    const count   = images.length;
+    const angle   = 360 / count;                                    // degrees between photos
+    const PANEL_W = Math.round(PANEL_H * IMG_RATIO);                // panel matches photo shape
+    const RADIUS  = Math.round(PANEL_W / (2 * Math.sin(Math.PI / count)) * GAP); // ring radius so panels meet edge to edge
+
+    const container = document.getElementById('container');
+    const ring = document.getElementById('ring');
+    const dragger = document.getElementById('dragger');
+
+    container.style.width  = PANEL_W + 'px';
+    container.style.height = PANEL_H + 'px';
+
+    images.forEach(() => {
+      const div = document.createElement('div');
+      div.className = 'img';
+      ring.appendChild(div);
+    });
+
+    let xPos = 0;
+
+    gsap.timeline()
+      .set(dragger, { opacity: 0 })
+      .set(ring, { rotationY: 180 })
+      .set('.img', {
+        rotateY: (i) => i * -angle,
+        transformOrigin: '50% 50% ' + RADIUS + 'px',
+        z: -RADIUS,
+        backgroundImage: (i) => 'url(' + images[i] + ')',
+        backgroundRepeat: 'no-repeat',
+        // photo is drawn a bit wider than the panel so it has room to slide (parallax); extra height is cropped
+        backgroundSize: (PANEL_W + PARALLAX) + 'px auto',
+        backgroundPosition: (i) => getBgPos(i),
+        backfaceVisibility: 'hidden'
+      })
+      .from('.img', {
+        duration: 1.5,
+        y: 200,
+        opacity: 0,
+        stagger: 0.1,
+        ease: 'expo'
+      });
+
+    Draggable.create(dragger, {
+      onDragStart: (e) => {
+        if (e.touches) e.clientX = e.touches[0].clientX;
+        xPos = Math.round(e.clientX);
+      },
+      onDrag: (e) => {
+        if (e.touches) e.clientX = e.touches[0].clientX;
+        gsap.to(ring, {
+          rotationY: '-=' + ((Math.round(e.clientX) - xPos) % 360),
+          onUpdate: () => {
+            gsap.set('.img', { backgroundPosition: (i) => getBgPos(i) });
+          }
+        });
+        xPos = Math.round(e.clientX);
+      },
+      onDragEnd: () => {
+        gsap.set(dragger, { x: 0, y: 0 });
+      }
+    });
+
+    function getBgPos(i) {
+      const x = -gsap.utils.wrap(0, 360, gsap.getProperty(ring, 'rotationY') - 180 - i * angle) / 360 * PARALLAX;
+      return x + 'px 50%';
+    }
+  </script>
+</body>
+</html>
