@@ -33,7 +33,7 @@
 
     .container {
       perspective: 2000px;
-      width: 300px;   /* overwritten by the script to match your image shape */
+      width: 300px; 
       height: 300px;
       left: 50%;
       top: 50%;
@@ -63,7 +63,6 @@
   <script>
     gsap.registerPlugin(Draggable);
 
-    // YOUR IMAGES (keep them in the same folder as this file)
     const images = [
       'Cam1.jpg',
       'Ducks1.jpg',
@@ -74,16 +73,15 @@
       'UpStairs.jpg'
     ];
 
-    // ---- Size settings ----
-    const IMG_RATIO = 1280 / 873;   // your photos' width / height
-    const PANEL_H   = 300;          // height of each panel in px (change to make the ring bigger or smaller)
-    const PARALLAX  = 120;          // how far each photo slides sideways as it rotates (px)
-    const GAP       = 1.02;         // 1 = panels touch, higher = small gaps between them
+    const IMG_RATIO = 1280 / 873;   
+    const PANEL_H   = 300;         
+    const PARALLAX  = 120;        
+    const GAP       = 1.02;       
 
     const count   = images.length;
-    const angle   = 360 / count;                                    // degrees between photos
-    const PANEL_W = Math.round(PANEL_H * IMG_RATIO);                // panel matches photo shape
-    const RADIUS  = Math.round(PANEL_W / (2 * Math.sin(Math.PI / count)) * GAP); // ring radius so panels meet edge to edge
+    const angle   = 360 / count;                                
+    const PANEL_W = Math.round(PANEL_H * IMG_RATIO);              
+    const RADIUS  = Math.round(PANEL_W / (2 * Math.sin(Math.PI / count)) * GAP); 
 
     const container = document.getElementById('container');
     const ring = document.getElementById('ring');
@@ -109,7 +107,6 @@
         z: -RADIUS,
         backgroundImage: (i) => 'url(' + images[i] + ')',
         backgroundRepeat: 'no-repeat',
-        // photo is drawn a bit wider than the panel so it has room to slide (parallax); extra height is cropped
         backgroundSize: (PANEL_W + PARALLAX) + 'px auto',
         backgroundPosition: (i) => getBgPos(i),
         backfaceVisibility: 'hidden'
